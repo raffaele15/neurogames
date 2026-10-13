@@ -1,0 +1,34 @@
+{
+ "members": [
+  "Raffaele",
+  "Giorgia",
+  "Clara",
+  "Benedetta"
+ ],
+ "map": {
+  "neuromuscolare": 0,
+  "movimento": 1,
+  "genetica": 2,
+  "cerebrovascolare": 3,
+  "anatomia": 3,
+  "psichiatria": 2,
+  "epilessia": 1,
+  "comportamentale": 0,
+  "demielinizzanti": 2,
+  "neurooft": 3,
+  "infettivo": 1,
+  "neuroonco": 0,
+  "neuroscienze": 3,
+  "cefalee": 2,
+  "neurocritica": 1,
+  "metabolico": 0,
+  "sonno": 2,
+  "neuropat": 3,
+  "pediatria": 1,
+  "sistemiche": 0,
+  "neurofisio": 3,
+  "neuroradio": 2,
+  "autonomico": 1,
+  "etica": 0
+ }
+}

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F6E64">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Neurogames">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Neurogames</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="boot" class="boot">Caricamento…</div>
+
+<!-- LOGIN -->
+<section id="login" class="login" hidden>
+  <div class="login-card">
+    <img src="icons/logo.png" alt="" class="logo-big">
+    <div class="lbl">Torneo di neurologia a squadre</div>
+    <h1>Neurogames</h1>
+    <div class="countdown" data-cd></div>
+    <p class="muted">Scegli il tuo nome ed entra.</p>
+    <div class="who" id="whoList" role="radiogroup" aria-label="Utente"></div>
+    <label for="pw" class="lbl" style="margin-top:6px">Password</label>
+    <input type="password" id="pw" autocomplete="current-password" placeholder="Password">
+    <button class="primary big" id="loginBtn">Entra</button>
+    <div class="status" id="loginMsg"></div>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="brand"><img src="icons/logo.png" alt="Neurogames" class="logo-sm"><div><div class="lbl">Neurogames</div><strong id="meName"></strong></div><span class="dot" id="meDot"></span></div>
+    <div class="row" style="gap:6px">
+      <span class="chip plain" id="dueChip" title="Domande da ripassare"></span>
+      <button class="ghost" id="logout">Esci</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="cd-band"><span class="lbl">Alla gara</span><span class="countdown" data-cd></span></div>
+    <div id="note" class="notice" hidden></div>
+
+    <!-- ALLENAMENTO -->
+    <section id="p-play">
+      <div class="card" id="setup">
+        <h2>Nuova sessione</h2>
+        <div class="row setup-row">
+          <select id="mode" aria-label="Quali domande">
+            <option value="review">Ripasso consigliato (scadute + nuove)</option>
+            <option value="mine">Le mie aree</option>
+            <option value="all">Tutte le aree selezionate</option>
+            <option value="wrong">Solo quelle che ho sbagliato</option>
+            <option value="new">Solo domande nuove</option>
+          </select>
+          <label class="row" style="gap:6px">N. <input type="number" id="nq" min="1" max="500" value="20" inputmode="numeric" style="width:5em"></label>
+          <button class="primary" id="start">Inizia</button>
+        </div>
+        <div class="status" id="setupInfo"></div>
+
+        <details class="settings" id="settings">
+          <summary>Impostazioni sessione</summary>
+          <div class="set-grid">
+            <fieldset><legend>Fonti</legend><div id="srcList" class="checks"></div>
+              <div class="row mini"><button class="ghost" data-all="srcList">Tutte</button><button class="ghost" data-none="srcList">Nessuna</button></div></fieldset>
+            <fieldset><legend>Aree</legend><div id="catList" class="checks cols2"></div>
+              <div class="row mini"><button class="ghost" data-all="catList">Tutte</button><button class="ghost" data-none="catList">Nessuna</button><button class="ghost" id="catMine">Solo le mie</button></div></fieldset>
+            <fieldset><legend>Difficoltà stimata</legend><div class="checks">
+              <label><input type="checkbox" name="lvl" value="1" checked> Base</label>
+              <label><input type="checkbox" name="lvl" value="2" checked> Intermedia</label>
+              <label><input type="checkbox" name="lvl" value="3" checked> Avanzata</label></div>
+              <p class="hint">Stimata da lunghezza del caso, numero di opzioni, domande in negativo e immagini.</p></fieldset>
+            <fieldset><legend>Tipo di domanda</legend><div class="checks">
+              <label><input type="radio" name="kind" value="all" checked> Tutte</label>
+              <label><input type="radio" name="kind" value="case"> Solo casi clinici</label>
+              <label><input type="radio" name="kind" value="short"> Solo nozionistiche</label></div>
+              <div class="checks" style="margin-top:8px">
+              <label><input type="radio" name="imgs" value="all" checked> Con e senza immagini</label>
+              <label><input type="radio" name="imgs" value="only"> Solo con immagini</label>
+              <label><input type="radio" name="imgs" value="none"> Senza immagini</label>
+              <label><input type="checkbox" id="hideMissing" checked> Escludi domande che citano un'immagine non estratta</label></div></fieldset>
+            <fieldset><legend>Tempo</legend>
+              <label class="row" style="gap:8px">Secondi base <input type="number" id="secs" min="5" max="300" value="30" inputmode="numeric" style="width:5em"></label>
+              <label class="checks" style="margin-top:8px"><span><input type="checkbox" id="extraTime" checked> Tempo extra per i casi lunghi</span></label>
+              <p class="hint">+1 secondo ogni 4 parole oltre le prime 40, fino a +90 s.</p></fieldset>
+            <fieldset><legend>Lingua</legend><div class="checks">
+              <label><input type="radio" name="lang" value="it" checked> Italiano (traduzione automatica)</label>
+              <label><input type="radio" name="lang" value="en"> English (originale)</label></div>
+              <p class="hint">Durante il quiz puoi sempre passare all'altra lingua con il pulsante IT/EN.</p></fieldset>
+          </div>
+        </details>
+
+        <details class="settings">
+          <summary>Come funziona il ripasso</summary>
+          <div class="prose">
+            <p>Ogni domanda sale lungo 6 livelli (sistema Leitner). Prima arrivano le domande scadute, poi le nuove.</p>
+            <p><b>Sbagliata o tempo scaduto:</b> torna al livello 0, ricompare dopo 4 domande nella stessa sessione e torna in scadenza dopo 10 minuti.</p>
+            <p><b>Corretta:</b> sale di un livello e torna dopo:</p>
+            <div class="row" id="ladder" style="gap:6px"></div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card" id="quiz" hidden>
+        <div class="row between">
+          <span class="lbl" id="qMeta"></span>
+          <div class="row" style="gap:8px"><button class="ghost langbtn" id="qLang">EN</button><span class="clock" id="clock">30</span></div>
+        </div>
+        <div class="timer" id="bar"><i style="width:100%"></i></div>
+        <div class="extra" id="extraInfo"></div>
+        <div class="stem" id="stem"></div>
+        <div class="imgs" id="qImgs"></div>
+        <div class="opts" id="opts"></div>
+        <div id="after" hidden>
+          <div class="expl" id="expl"></div>
+          <div class="row" style="margin-top:12px"><button class="primary" id="next">Avanti</button><button id="stop">Termina</button></div>
+        </div>
+      </div>
+      <div class="card" id="result" hidden></div>
+    </section>
+
+    <!-- LIBRERIA -->
+    <section id="p-lib" hidden>
+      <div class="card">
+        <h2>Libreria</h2>
+        <input type="search" id="libQ" placeholder="Cerca nel testo di domande e risposte (IT o EN)" aria-label="Cerca">
+        <div class="row" style="margin-top:8px">
+          <select id="libCat" aria-label="Area"></select>
+          <select id="libSrc" aria-label="Fonte"></select>
+          <select id="libState" aria-label="Stato">
+            <option value="">Tutti gli stati</option><option value="new">Nuove</option><option value="wrong">Sbagliate almeno una volta</option>
+            <option value="learning">In apprendimento</option><option value="learned">Apprese</option><option value="due">Da ripassare</option>
+          </select>
+          <select id="libImg" aria-label="Immagini"><option value="">Con e senza immagini</option><option value="only">Solo con immagini</option></select>
+        </div>
+        <div class="row between" style="margin-top:8px"><span class="status" id="libCount"></span><button class="ghost" id="libTrain">Allenati su questi risultati</button></div>
+      </div>
+      <div class="qlist" id="lib"></div>
+      <div class="row center"><button id="libMore" hidden>Mostra altre</button></div>
+    </section>
+
+    <!-- AREE -->
+    <section id="p-cat" hidden>
+      <div class="card">
+        <h2>Aree della squadra</h2>
+        <p class="muted">Ogni area è assegnata a un membro. Le categorie seguono i capitoli dei libri.</p>
+        <div class="row between" style="margin-top:8px"><div class="row" id="load" style="gap:6px"></div><button id="autoSplit">Dividi automaticamente</button></div>
+      </div>
+      <div class="grid" id="cats"></div>
+    </section>
+
+    <!-- PROFILO -->
+    <section id="p-me" hidden>
+      <div class="card">
+        <h2 id="meTitle">Le mie statistiche</h2>
+        <div class="kpis" id="kpis"></div>
+      </div>
+      <div class="card">
+        <h3>Apprendimento</h3>
+        <p class="hint">Stati come in Anki: nuove, in apprendimento, apprese a breve (intervallo ≤ 3 giorni), medio (7–14 giorni) e lungo termine (≥ 21 giorni, "mature"). "Recuperate": sbagliate e poi indovinate almeno 2 volte di fila.</p>
+        <div class="stack" id="learnBar"></div>
+        <div class="row" id="learnLegend" style="gap:6px;margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <h3>Per area</h3>
+        <div id="catStats" class="catstats"></div>
+      </div>
+      <div class="card">
+        <div class="row between"><h3>Storico e liste</h3>
+          <select id="meList" aria-label="Lista">
+            <option value="hist">Storico risposte</option><option value="wrong">Da rivedere (ultima risposta sbagliata)</option>
+            <option value="recovered">Recuperate</option><option value="learned">Apprese</option>
+          </select></div>
+        <div class="qlist" id="meQs" style="margin-top:8px"></div>
+        <div class="row center"><button id="meMore" hidden>Mostra altre</button></div>
+      </div>
+      <div class="card">
+        <h3>Dati</h3>
+        <p class="hint">I progressi restano su questo dispositivo. Esportali per spostarli su un altro telefono o computer.</p>
+        <div class="row"><button id="expProg">Copia progressi</button><button id="impProg">Importa progressi</button><button id="resetSrs">Azzera progressi</button></div>
+        <textarea id="progBox" hidden placeholder="Incolla qui i progressi esportati"></textarea>
+        <div class="status" id="progMsg"></div>
+        <div class="install" id="installBox" hidden><button class="primary" id="installBtn">Installa l'app</button></div>
+        <p class="hint" id="installHint">Per installarla sul telefono: Android/Chrome menu ⋮ → "Installa app"; iPhone/Safari → Condividi → "Aggiungi alla schermata Home".</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist">
+    <button data-tab="play" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Allenamento</button>
+    <button data-tab="lib" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 10h16M4 15h10M4 20h7"/><circle cx="18" cy="18" r="3"/><path d="M20.2 20.2 22 22"/></svg>Libreria</button>
+    <button data-tab="cat" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>Aree</button>
+    <button data-tab="me" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Profilo</button>
+  </nav>
+</div>
+
+<!-- dettaglio domanda -->
+<dialog id="detail"><div class="dlg">
+  <div class="row between"><span class="lbl" id="dMeta"></span><div class="row" style="gap:6px"><button class="ghost langbtn" id="dLang">EN</button><button class="ghost" id="dClose" aria-label="Chiudi">✕</button></div></div>
+  <div class="stem" id="dStem"></div>
+  <div class="imgs" id="dImgs"></div>
+  <div class="opts" id="dOpts"></div>
+  <div id="dAfter" hidden><div class="expl" id="dExpl"></div></div>
+  <div class="row" style="margin-top:10px"><button id="dReveal">Mostra risposta</button></div>
+</div></dialog>
+<dialog id="zoom"><img id="zoomImg" alt=""></dialog>
+
+<script src="app.js"></script>
+</body>
+</html>

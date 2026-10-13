@@ -1,0 +1,139 @@
+{
+ "books": {
+  "mcg": {
+   "title": "McGregor et al. — Neurology Board Review Q&A, 2e, 2025",
+   "short": "McGregor Q&A",
+   "count": 1055
+  },
+  "ess": {
+   "title": "Essential Neurology Board Review Q&A, 2026",
+   "short": "Essential Neurology Q&A",
+   "count": 904
+  },
+  "mayo": {
+   "title": "Mayo Clinic Neurology Board Review, 2e, 2022",
+   "short": "Mayo Clinic Board Review",
+   "count": 472
+  },
+  "sou": {
+   "title": "Souayah — Neurology Examination and Board Review, 3e, 2017",
+   "short": "Souayah",
+   "count": 1441
+  },
+  "how": {
+   "title": "Howard — Neurology Q&A Review, 2017",
+   "short": "Howard Q&A",
+   "count": 915
+  },
+  "bra": {
+   "title": "Jordan, Mayans, Soileau — Neurology Self-Assessment (Bradley), 2016",
+   "short": "Bradley Self-Assessment",
+   "count": 593
+  },
+  "mow": {
+   "title": "Mowzoon, Flemming — Neurology Board Review: Illustrated Study Guide, 2007",
+   "short": "Mowzoon Illustrated",
+   "count": 173
+  }
+ },
+ "cats": [
+  [
+   "anatomia",
+   "Neuroanatomia e localizzazione"
+  ],
+  [
+   "neuroscienze",
+   "Neuroscienze di base e neurofarmacologia"
+  ],
+  [
+   "neurofisio",
+   "Neurofisiologia (EEG, EMG, PE)"
+  ],
+  [
+   "neuroradio",
+   "Neuroradiologia"
+  ],
+  [
+   "neuropat",
+   "Neuropatologia"
+  ],
+  [
+   "cerebrovascolare",
+   "Malattie cerebrovascolari"
+  ],
+  [
+   "neurocritica",
+   "Neurocritica, emergenze e trauma"
+  ],
+  [
+   "epilessia",
+   "Epilessia"
+  ],
+  [
+   "sonno",
+   "Disturbi del sonno"
+  ],
+  [
+   "cefalee",
+   "Cefalee e dolore"
+  ],
+  [
+   "movimento",
+   "Disturbi del movimento e cervelletto"
+  ],
+  [
+   "demielinizzanti",
+   "Demielinizzanti e neuroimmunologia"
+  ],
+  [
+   "infettivo",
+   "Neuroinfettivologia"
+  ],
+  [
+   "neuroonco",
+   "Neuro-oncologia"
+  ],
+  [
+   "comportamentale",
+   "Neurologia comportamentale e demenze"
+  ],
+  [
+   "psichiatria",
+   "Psichiatria e dipendenze"
+  ],
+  [
+   "neuromuscolare",
+   "Neuromuscolare, SNP e midollo"
+  ],
+  [
+   "autonomico",
+   "Sistema nervoso autonomo"
+  ],
+  [
+   "neurooft",
+   "Neuro-oftalmologia, otoneurologia e nervi cranici"
+  ],
+  [
+   "metabolico",
+   "Disturbi metabolici, tossici e carenziali"
+  ],
+  [
+   "sistemiche",
+   "Neurologia delle malattie sistemiche"
+  ],
+  [
+   "genetica",
+   "Neurogenetica, sviluppo e neurocutanee"
+  ],
+  [
+   "pediatria",
+   "Neuropediatria"
+  ],
+  [
+   "etica",
+   "Etica, statistica e pratica clinica"
+  ]
+ ],
+ "total": 5553,
+ "translated": true
+}
