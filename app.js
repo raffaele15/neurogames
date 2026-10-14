@@ -43,7 +43,7 @@ function loadUser() {
 const saveSrs = () => ls.set(key("srs"), srs);
 const saveHist = () => ls.set(key("hist"), hist.slice(-6000));
 const saveSettings = () => ls.set(key("set"), settings);
-const saveTeam = () => ls.set("ng_team", team);
+const saveTeam = () => ls.set("ng_team2", team);
 
 /* ================= testo bilingue ================= */
 function T(q, lang) {
@@ -135,8 +135,8 @@ $$("[data-none]").forEach(b => b.onclick = e => { e.preventDefault(); $$(`#${b.d
 $("#catMine").onclick = e => { e.preventDefault(); $$("#catList input").forEach(i => i.checked = team.map[i.value] === uidx); readSettings(); };
 
 function filtered() {
-  const S = settings, srcs = new Set(S.srcs), cats = new Set(S.cats), lv = new Set(S.lvls);
-  return Q.filter(q => srcs.has(q.b) && cats.has(q.c) && lv.has(q.l)
+  const S = settings, srcs = new Set(S.srcs), cats = new Set(S.cats), lv = new Set(S.lvls), rep = new Set([...reports(), ...hiddenQ()]);
+  return Q.filter(q => !rep.has(q.id) && srcs.has(q.b) && cats.has(q.c) && lv.has(q.l)
     && (S.kind === "all" || (S.kind === "case" ? q.cs : !q.cs))
     && (S.imgs === "all" || (S.imgs === "only" ? q.im : !q.im))
     && !(S.hideMissing && q.mi));
@@ -178,8 +178,80 @@ function startSession(list) {
 }
 $("#start").onclick = () => { readSettings(); startSession(buildSession(pool(), settings.nq)); };
 
-function imgsHTML(q) { return (q.im || []).map(n => `<img src="img/${n}" alt="Figura della domanda" loading="lazy">`).join(""); }
-function bindZoom(root) { root.querySelectorAll("img").forEach(i => i.onclick = () => { $("#zoomImg").src = i.src; $("#zoom").showModal(); }); }
+function imgsHTML(q) {
+  if (!q.im) return "";
+  return q.im.map(n => `<img src="img/${n}" alt="Figura della domanda" loading="lazy">`).join("");
+}
+function bindZoom(root) {
+  root.querySelectorAll("img").forEach(i => i.onclick = () => { $("#zoomImg").src = i.src; $("#zoom").showModal(); });
+}
+
+/* ---- domande nascoste e segnalazioni (per utente) ---- */
+const hiddenQ = () => ls.get(key("hidden"), []);
+const reportsAll = () => ls.get(key("reports"), []);
+function reports() { return reportsAll().map(r => r.id); }
+const REPTYPES = [["text", "Testo troncato o illeggibile"], ["ans", "Risposta o spiegazione errata"], ["tr", "Traduzione sbagliata"], ["img", "Immagine sbagliata o mancante"], ["other", "Altro"]];
+function actionsHTML(q) {
+  const hid = hiddenQ().includes(q.id), rep = reportsAll().find(r => r.id === q.id);
+  return `<div class="qactions" data-qa="${q.id}">
+    <div class="row" style="gap:6px">
+      <button class="ghost" data-act="hide">${hid ? "Mostra di nuovo" : "Non mostrare più"}</button>
+      <button class="ghost" data-act="report">${rep ? "Segnalata ✓" : "Segnala domanda"}</button>
+    </div>
+    <form class="repform" hidden>
+      <label class="lbl" for="rt-${q.id}">Problema</label>
+      <select id="rt-${q.id}" name="type">${REPTYPES.map(([k, n]) => `<option value="${k}" ${rep && rep.type === k ? "selected" : ""}>${n}</option>`).join("")}</select>
+      <label class="lbl" for="rn-${q.id}">Motivazione</label>
+      <textarea id="rn-${q.id}" name="note" placeholder="Descrivi il problema (facoltativo)">${esc(rep ? rep.note : "")}</textarea>
+      <div class="row"><button class="primary" type="submit">Salva segnalazione</button>${rep ? `<button type="button" data-act="unreport">Rimuovi segnalazione</button>` : ""}<button type="button" data-act="cancel">Annulla</button></div>
+    </form>
+    <div class="status"></div>
+  </div>`;
+}
+function bindActions(root, onChange) {
+  const box = root.querySelector("[data-qa]"); if (!box) return;
+  const id = box.dataset.qa, form = box.querySelector("form"), st = box.querySelector(".status");
+  const open = type => { form.hidden = false; if (type) form.type.value = type; form.note.focus(); };
+  box.querySelectorAll("[data-act]").forEach(b => b.onclick = e => {
+    e.preventDefault();
+    const a = b.dataset.act;
+    if (a === "hide") {
+      const h = hiddenQ(), i = h.indexOf(id);
+      if (i >= 0) { h.splice(i, 1); st.textContent = "La domanda tornerà nelle tue sessioni."; }
+      else { h.push(id); st.textContent = "Non vedrai più questa domanda. Puoi ripristinarla dal Profilo."; }
+      ls.set(key("hidden"), h); b.textContent = i >= 0 ? "Non mostrare più" : "Mostra di nuovo"; onChange && onChange();
+    }
+    if (a === "report") open();
+    if (a === "reportimg") open("img");
+    if (a === "cancel") form.hidden = true;
+    if (a === "unreport") { ls.set(key("reports"), reportsAll().filter(r => r.id !== id)); box.outerHTML = actionsHTML(QBYID.get(id)); bindActions(root, onChange); onChange && onChange(); }
+  });
+  form.onsubmit = e => {
+    e.preventDefault();
+    const r = reportsAll().filter(x => x.id !== id);
+    r.push({ id, type: form.type.value, note: form.note.value.trim(), t: Date.now(), user: me });
+    ls.set(key("reports"), r);
+    form.hidden = true; box.querySelector('[data-act="report"]').textContent = "Segnalata ✓";
+    st.textContent = "Segnalazione salvata. La domanda è esclusa dalle tue sessioni; invia l'elenco dal Profilo.";
+    onChange && onChange();
+  };
+}
+function renderReports() {
+  const r = reportsAll(), box = $("#repBox"); if (!box) return;
+  box.hidden = !r.length;
+  $("#repCount").textContent = r.length;
+  const tn = Object.fromEntries(REPTYPES);
+  $("#repList").value = r.map(x => { const q = QBYID.get(x.id); return `${x.id} [${tn[x.type] || x.type}] ${q ? META.books[q.b].short + " p." + q.p : ""}${x.note ? " — " + x.note : ""}`; }).join("\n");
+  const h = hiddenQ(), hb = $("#hidBox");
+  hb.hidden = !h.length; $("#hidCount").textContent = h.length;
+  $("#hidList").innerHTML = h.map(id => QBYID.get(id)).filter(Boolean).map(q => qItem(q)).join("");
+  bindItems($("#hidList"));
+}
+$("#repCopy").onclick = async () => {
+  try { await navigator.clipboard.writeText(`Segnalazioni Neurogames di ${me}\n` + $("#repList").value); $("#repMsg").textContent = "Elenco copiato: mandalo a Raffaele."; }
+  catch { $("#repList").select(); $("#repMsg").textContent = "Copia il testo selezionato."; }
+};
+$("#hidReset").onclick = () => { ls.set(key("hidden"), []); renderReports(); updateSetupInfo(); };
 $("#zoom").onclick = () => $("#zoom").close();
 
 function renderQText() {
@@ -199,7 +271,7 @@ function showQ() {
   $("#opts").innerHTML = q.o.map((o, i) => `<button class="opt" data-i="${i}"><span class="k">${"ABCDEF"[i]}</span><span class="tx"></span></button>`).join("");
   $$("#opts .opt").forEach(b => b.onclick = () => answer(+b.dataset.i));
   $("#qImgs").innerHTML = imgsHTML(q); bindZoom($("#qImgs"));
-  $("#after").hidden = true; renderQText(); drawClock();
+  $("#after").hidden = true; $("#qActs").dataset.id = ""; renderQText(); drawClock();
   clearInterval(tick); tick = setInterval(() => { S.left -= .25; drawClock(); if (S.left <= 0) answer(-1); }, 250);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -213,6 +285,7 @@ function renderExpl() {
     <div>${esc(t.e) || '<span class="muted">Nessuna spiegazione nel libro.</span>'}</div>
     ${t.it ? `<div class="hint">Traduzione automatica · usa il pulsante EN per l'originale.</div>` : ""}
     <div class="src">${srcLine(q)}</div><div class="src">${back}</div>`;
+  if (!$("#qActs").dataset.id || $("#qActs").dataset.id !== q.id) { $("#qActs").innerHTML = actionsHTML(q); $("#qActs").dataset.id = q.id; bindActions($("#qActs"), updateSetupInfo); }
 }
 function answer(i) {
   if (S.done) return; S.done = true; clearInterval(tick);
@@ -243,7 +316,7 @@ function finish() {
 /* ================= dettaglio domanda (libreria, profilo) ================= */
 let DQ = null, DL = "it", DD = false;
 function openDetail(id) {
-  DQ = QBYID.get(id); if (!DQ) return; DL = settings.lang; DD = false;
+  DQ = QBYID.get(id); if (!DQ) return; DL = settings.lang; DD = false; $("#dActs").dataset.id = "";
   $("#dAfter").hidden = true; $("#dReveal").hidden = false; renderDetail(); $("#detail").showModal();
 }
 function renderDetail() {
@@ -254,6 +327,7 @@ function renderDetail() {
   $("#dOpts").innerHTML = t.o.map((o, i) => `<button class="opt ${DD ? (i === q.a ? "right" : (i === DD.i ? "wrong" : "")) : ""}" data-i="${i}" ${DD ? "disabled" : ""}><span class="k">${"ABCDEF"[i]}</span><span>${esc(o)}</span></button>`).join("");
   $$("#dOpts .opt").forEach(b => b.onclick = () => { if (DD) return; const i = +b.dataset.i; DD = { i }; grade(q.id, i === q.a); revealDetail(); });
   $("#dLang").textContent = DL === "it" ? "EN" : "IT"; $("#dLang").hidden = !q.qi;
+  if ($("#dActs").dataset.id !== q.id) { $("#dActs").innerHTML = actionsHTML(q); $("#dActs").dataset.id = q.id; bindActions($("#dActs"), () => renderAll(true)); }
   if (!$("#dAfter").hidden) fillDetailExpl();
 }
 function fillDetailExpl() {
@@ -355,7 +429,7 @@ function renderMe() {
   const by = {}; hist.forEach(([id, , ok]) => { const q = QBYID.get(id); if (!q) return; const b = by[q.c] || (by[q.c] = [0, 0]); b[1]++; if (ok) b[0]++; });
   const rows = META.cats.filter(([c]) => by[c]).sort((a, b) => pct(...by[a[0]]) - pct(...by[b[0]]));
   $("#catStats").innerHTML = rows.length ? rows.map(([c, n]) => { const [o, t] = by[c]; return `<div class="cs"><span>${esc(n)}</span><span class="v">${pct(o, t)}% · ${o}/${t}</span><div class="bar"><i style="width:${pct(o, t)}%"></i></div></div>`; }).join("") : `<p class="muted">Ancora nessuna risposta.</p>`;
-  renderMeList();
+  renderMeList(); renderReports();
 }
 function renderMeList() {
   const v = $("#meList").value; let items = [];
@@ -411,7 +485,7 @@ function drawCountdown() {
   let ms = CONTEST - Date.now(); const done = ms <= 0; ms = Math.max(0, ms);
   const d = Math.floor(ms / D), h = Math.floor(ms % D / H), m = Math.floor(ms % H / MIN), s = Math.floor(ms % MIN / 1000);
   const p = n => String(n).padStart(2, "0");
-  const txt = done ? "È il giorno della gara!" : `${d}g ${p(h)}h ${p(m)}m ${p(s)}s`;
+  const txt = done ? "È il giorno della gara!" : `${d} ${d === 1 ? "giorno" : "giorni"} · ${p(h)}:${p(m)}:${p(s)}`;
   $$("[data-cd]").forEach(e => e.textContent = txt);
 }
 drawCountdown(); setInterval(drawCountdown, 1000);
@@ -430,7 +504,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) naviga
     const parts = await Promise.all(Object.keys(META.books).map(k => fetch(`data/q-${k}.json`).then(r => r.json())));
     Q = parts.flat(); Q.forEach(q => QBYID.set(q.id, q));
     const def = await fetch("data/team.json").then(r => r.json()).catch(() => ({ map: {} }));
-    team = ls.get("ng_team", null) || { map: def.map || {} };
+    team = ls.get("ng_team2", null) || { map: def.map || {} };
     const opt = (v, t) => `<option value="${v}">${esc(t)}</option>`;
     $("#libCat").innerHTML = opt("", "Tutte le aree") + META.cats.map(([c, n]) => opt(c, n)).join("");
     $("#libSrc").innerHTML = opt("", "Tutte le fonti") + Object.entries(META.books).map(([k, b]) => opt(k, b.short)).join("");

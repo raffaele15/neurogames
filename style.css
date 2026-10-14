@@ -143,3 +143,8 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 .login .countdown{text-align:center;font-size:1.25rem}
 .cd-band{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:var(--r);padding:10px 14px}
 .cd-band .sub{font-size:.8rem;color:var(--muted)}
+
+.qactions{border-top:1px solid var(--line);margin-top:12px;padding-top:8px;display:grid;gap:8px}
+.qactions .ghost{font-size:.86rem;color:var(--muted)}
+.repform{display:grid;gap:6px}
+.repform textarea{min-height:70px;font:inherit;font-size:15px}

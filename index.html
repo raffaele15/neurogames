@@ -46,7 +46,7 @@
   </header>
 
   <main class="wrap">
-    <div class="cd-band"><span class="lbl">Alla gara</span><span class="countdown" data-cd></span></div>
+    <div class="cd-band"><span class="lbl">Giorni mancanti alla gara · 26/10 ore 17:00</span><span class="countdown" data-cd></span></div>
     <div id="note" class="notice" hidden></div>
 
     <!-- ALLENAMENTO -->
@@ -122,6 +122,7 @@
         <div id="after" hidden>
           <div class="expl" id="expl"></div>
           <div class="row" style="margin-top:12px"><button class="primary" id="next">Avanti</button><button id="stop">Termina</button></div>
+          <div id="qActs"></div>
         </div>
       </div>
       <div class="card" id="result" hidden></div>
@@ -188,6 +189,19 @@
         <div class="row"><button id="expProg">Copia progressi</button><button id="impProg">Importa progressi</button><button id="resetSrs">Azzera progressi</button></div>
         <textarea id="progBox" hidden placeholder="Incolla qui i progressi esportati"></textarea>
         <div class="status" id="progMsg"></div>
+        <div id="repBox" class="notice" hidden>
+          <b>Le mie segnalazioni: <span id="repCount"></span></b>
+          <p class="hint">Queste domande sono escluse dalle tue sessioni. Copia l'elenco e mandalo a Raffaele per le correzioni.</p>
+          <textarea id="repList" readonly></textarea>
+          <div class="row"><button id="repCopy">Copia elenco</button></div>
+          <div class="status" id="repMsg"></div>
+        </div>
+        <div id="hidBox" class="notice" hidden>
+          <b>Domande nascoste: <span id="hidCount"></span></b>
+          <p class="hint">Non compaiono più nelle tue sessioni. Aprine una per mostrarla di nuovo.</p>
+          <div class="qlist" id="hidList" style="max-height:320px;overflow:auto"></div>
+          <div class="row" style="margin-top:8px"><button id="hidReset">Ripristina tutte</button></div>
+        </div>
         <div class="install" id="installBox" hidden><button class="primary" id="installBtn">Installa l'app</button></div>
         <p class="hint" id="installHint">Per installarla sul telefono: Android/Chrome menu ⋮ → "Installa app"; iPhone/Safari → Condividi → "Aggiungi alla schermata Home".</p>
       </div>
@@ -210,6 +224,7 @@
   <div class="opts" id="dOpts"></div>
   <div id="dAfter" hidden><div class="expl" id="dExpl"></div></div>
   <div class="row" style="margin-top:10px"><button id="dReveal">Mostra risposta</button></div>
+  <div id="dActs"></div>
 </div></dialog>
 <dialog id="zoom"><img id="zoomImg" alt=""></dialog>
 
