@@ -1,3 +1,25 @@
 {
- "assignments": {}
+ "assignments": {
+  "anatomia": "Raffaele",
+  "neuroscienze": "Raffaele",
+  "neurofisio": "Raffaele",
+  "neuroradio": "Giorgia",
+  "cerebrovascolare": "Giorgia",
+  "neurocritica": "Giorgia",
+  "epilessia": "Raffaele",
+  "sonno": "Raffaele",
+  "cefalee": "Clara",
+  "movimento": "Clara",
+  "demielinizzanti": "Benedetta",
+  "infettivo": "Benedetta",
+  "comportamentale": "Giorgia",
+  "neuromuscolare": "Benedetta",
+  "autonomico": "Benedetta",
+  "neurooft": "Giorgia",
+  "metabolico": "Benedetta",
+  "sistemiche": "Benedetta",
+  "genetica": "Clara"
+ },
+ "updatedBy": "Raffaele",
+ "updatedAt": "14/10/26, 15:37"
 }
