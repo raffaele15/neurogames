@@ -422,17 +422,22 @@ $("#asgOpen").onclick = () => {
 $("#asgClose").onclick = () => { $("#asgBox").hidden = true; $("#asgOpen").hidden = false; };
 $("#asgShare").onclick = async () => {
   const text = draftJSON(), msg = $("#asgMsg");
-  const file = new File([text], "team.json", { type: "application/json" });
-  try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "Assegnazioni Neurogames" }); msg.textContent = "File condiviso."; return; }
-    if (navigator.share) { await navigator.share({ title: "Assegnazioni Neurogames (team.json)", text }); msg.textContent = "Testo condiviso."; return; }
-    throw 0;
-  } catch (e) {
-    if (e && e.name === "AbortError") return;
-    const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = "team.json"; document.body.append(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    msg.textContent = "File team.json scaricato: mandalo a Raffaele.";
+  // file .txt: i browser condividono testo e .txt, non .json
+  const file = new File([text], "team.json.txt", { type: "text/plain" });
+  if (navigator.share) {
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: "team.json", text: "Assegnazioni Neurogames" });
+      else await navigator.share({ title: "Assegnazioni Neurogames (team.json)", text });
+      msg.textContent = "Condiviso.";
+    } catch (e) {
+      if (e && e.name === "AbortError") return;
+      try { await navigator.share({ title: "Assegnazioni Neurogames (team.json)", text }); msg.textContent = "Condiviso."; }
+      catch (e2) { if (!e2 || e2.name !== "AbortError") msg.textContent = "Condivisione non riuscita: usa Copia testo."; }
+    }
+    return;
   }
+  try { await navigator.clipboard.writeText(text); msg.textContent = "Questo browser non ha la condivisione: il testo è stato copiato, incollalo in un messaggio a Raffaele."; }
+  catch { $("#asgOut").closest("details").open = true; $("#asgOut").select(); msg.textContent = "Questo browser non ha la condivisione: copia il testo selezionato."; }
 };
 $("#asgCopy").onclick = async () => {
   try { await navigator.clipboard.writeText(draftJSON()); $("#asgMsg").textContent = "Copiato: incollalo in un messaggio a Raffaele."; }
