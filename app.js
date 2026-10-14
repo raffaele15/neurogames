@@ -43,7 +43,6 @@ function loadUser() {
 const saveSrs = () => ls.set(key("srs"), srs);
 const saveHist = () => ls.set(key("hist"), hist.slice(-6000));
 const saveSettings = () => ls.set(key("set"), settings);
-const saveTeam = () => ls.set("ng_team2", team);
 
 /* ================= testo bilingue ================= */
 function T(q, lang) {
@@ -378,32 +377,66 @@ $("#libTrain").onclick = () => { if (libRes.length) startSession(buildSession(li
 
 /* ================= aree ================= */
 const inCat = c => Q.filter(q => q.c === c);
+const owner = c => { const a = team.map[c]; return a >= 0 ? a : -1; };
 function renderCats() {
   const load = [0, 0, 0, 0], cnt = {}; Q.forEach(q => cnt[q.c] = (cnt[q.c] || 0) + 1);
-  META.cats.forEach(([c]) => { const a = team.map[c]; if (a >= 0) load[a] += cnt[c] || 0; });
-  const un = META.cats.filter(([c]) => !(team.map[c] >= 0)).reduce((s, [c]) => s + (cnt[c] || 0), 0);
+  META.cats.forEach(([c]) => { const a = owner(c); if (a >= 0) load[a] += cnt[c] || 0; });
+  const un = META.cats.filter(([c]) => owner(c) < 0).reduce((s, [c]) => s + (cnt[c] || 0), 0);
   $("#load").innerHTML = USERS.map((u, i) => `<span class="chip"><span class="dot" style="background:${MC[i]}">${u.name[0]}</span>${esc(u.name)} <b>${load[i]}</b></span>`).join("") + (un ? `<span class="chip plain">Non assegnate <b>${un}</b></span>` : "");
   const now = Date.now();
   $("#cats").innerHTML = META.cats.map(([c, n]) => {
-    const a = team.map[c], has = a >= 0, qs = Q.filter(q => q.c === c), due = qs.filter(q => isDue(q.id, now)).length;
-    return `<div class="cat" style="--mc:${has ? MC[a] : "var(--line)"}"><h3>${esc(n)}</h3>
-      <div><span class="cnt">${qs.length}</span> <span class="muted">domande</span>${due ? ` · <span class="due">${due} da ripassare</span>` : ""}</div>
-      <select data-as="${c}" aria-label="Assegna ${esc(n)}"><option value="-1">Non assegnata</option>${USERS.map((u, i) => `<option value="${i}" ${a == i ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select>
+    const a = owner(c), qs = cnt[c] || 0, due = inCat(c).filter(q => isDue(q.id, now)).length;
+    return `<div class="cat" style="--mc:${a >= 0 ? MC[a] : "var(--line)"}"><h3>${esc(n)}</h3>
+      <div><span class="cnt">${qs}</span> <span class="muted">domande</span>${due ? ` · <span class="due">${due} da ripassare</span>` : ""}</div>
+      <div class="owner">${a >= 0 ? `<span class="dot" style="background:${MC[a]}">${USERS[a].name[0]}</span>${esc(USERS[a].name)}` : '<span class="muted">Non assegnata</span>'}</div>
       <button data-train="${c}">Allenati su quest'area</button></div>`;
   }).join("");
-  $$("[data-as]").forEach(s => s.onchange = () => { team.map[s.dataset.as] = +s.value; saveTeam(); renderAll(); });
   $$("[data-train]").forEach(b => b.onclick = () => {
     const c = b.dataset.train, f = filtered().filter(q => q.c === c);
     startSession(buildSession(f.length ? f : inCat(c), settings.nq));
   });
 }
-$("#autoSplit").onclick = () => {
-  const load = [0, 0, 0, 0], n = [0, 0, 0, 0];
-  META.cats.map(([c]) => [c, inCat(c).length]).sort((a, b) => b[1] - a[1]).forEach(([c, k]) => {
-    let b = 0; for (let i = 1; i < 4; i++) if (load[i] < load[b] || (load[i] === load[b] && n[i] < n[b])) b = i;
-    team.map[c] = b; load[b] += k; n[b]++;
-  });
-  saveTeam(); renderAll();
+/* editor delle assegnazioni: crea il file team.json da mandare a Raffaele */
+let draft = null;
+function draftJSON() {
+  const assignments = {};
+  META.cats.forEach(([c]) => { const a = draft[c]; if (a >= 0) assignments[c] = USERS[a].name; });
+  return JSON.stringify({ assignments, updatedBy: me, updatedAt: new Date().toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" }) }, null, 1);
+}
+function renderAssign() {
+  $("#asgList").innerHTML = META.cats.map(([c, n]) => `<label class="asg-row"><span>${esc(n)} <span class="muted">(${inCat(c).length})</span></span>
+    <select data-asg="${c}"><option value="-1">Non assegnata</option>${USERS.map((u, i) => `<option value="${i}" ${draft[c] === i ? "selected" : ""}>${esc(u.name)}</option>`).join("")}</select></label>`).join("");
+  $$("[data-asg]").forEach(s => s.onchange = () => { draft[s.dataset.asg] = +s.value; drawAsgLoad(); });
+  drawAsgLoad();
+}
+function drawAsgLoad() {
+  const load = [0, 0, 0, 0];
+  META.cats.forEach(([c]) => { if (draft[c] >= 0) load[draft[c]] += inCat(c).length; });
+  $("#asgLoad").innerHTML = USERS.map((u, i) => `<span class="chip"><span class="dot" style="background:${MC[i]}">${u.name[0]}</span>${esc(u.name)} <b>${load[i]}</b></span>`).join("");
+  $("#asgOut").value = draftJSON();
+}
+$("#asgOpen").onclick = () => {
+  draft = {}; META.cats.forEach(([c]) => draft[c] = owner(c));
+  $("#asgBox").hidden = false; $("#asgOpen").hidden = true; renderAssign();
+};
+$("#asgClose").onclick = () => { $("#asgBox").hidden = true; $("#asgOpen").hidden = false; };
+$("#asgShare").onclick = async () => {
+  const text = draftJSON(), msg = $("#asgMsg");
+  const file = new File([text], "team.json", { type: "application/json" });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "Assegnazioni Neurogames" }); msg.textContent = "File condiviso."; return; }
+    if (navigator.share) { await navigator.share({ title: "Assegnazioni Neurogames (team.json)", text }); msg.textContent = "Testo condiviso."; return; }
+    throw 0;
+  } catch (e) {
+    if (e && e.name === "AbortError") return;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = "team.json"; document.body.append(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    msg.textContent = "File team.json scaricato: mandalo a Raffaele.";
+  }
+};
+$("#asgCopy").onclick = async () => {
+  try { await navigator.clipboard.writeText(draftJSON()); $("#asgMsg").textContent = "Copiato: incollalo in un messaggio a Raffaele."; }
+  catch { $("#asgOut").select(); $("#asgMsg").textContent = "Copia il testo selezionato."; }
 };
 
 /* ================= profilo ================= */
@@ -504,7 +537,11 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) naviga
     const parts = await Promise.all(Object.keys(META.books).map(k => fetch(`data/q-${k}.json`).then(r => r.json())));
     Q = parts.flat(); Q.forEach(q => QBYID.set(q.id, q));
     const def = await fetch("data/team.json").then(r => r.json()).catch(() => ({ map: {} }));
-    team = ls.get("ng_team2", null) || { map: def.map || {} };
+    // team.json: {"assignments": {"categoria": "Nome"}} oppure il vecchio formato {"map": {"categoria": indice}}
+    const map = {};
+    Object.entries(def.assignments || {}).forEach(([c, name]) => { const i = USERS.findIndex(u => u.name.toLowerCase() === String(name).toLowerCase()); if (i >= 0) map[c] = i; });
+    Object.entries(def.map || {}).forEach(([c, i]) => { if (!(c in map) && i >= 0) map[c] = +i; });
+    team = { map };
     const opt = (v, t) => `<option value="${v}">${esc(t)}</option>`;
     $("#libCat").innerHTML = opt("", "Tutte le aree") + META.cats.map(([c, n]) => opt(c, n)).join("");
     $("#libSrc").innerHTML = opt("", "Tutte le fonti") + Object.entries(META.books).map(([k, b]) => opt(k, b.short)).join("");

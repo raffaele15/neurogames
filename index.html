@@ -152,8 +152,17 @@
     <section id="p-cat" hidden>
       <div class="card">
         <h2>Aree della squadra</h2>
-        <p class="muted">Ogni area è assegnata a un membro. Le categorie seguono i capitoli dei libri.</p>
-        <div class="row between" style="margin-top:8px"><div class="row" id="load" style="gap:6px"></div><button id="autoSplit">Dividi automaticamente</button></div>
+        <p class="muted">Ogni area è assegnata a un membro. Le categorie seguono i capitoli dei libri. Le assegnazioni valide per tutti sono quelle caricate da Raffaele.</p>
+        <div class="row between" style="margin-top:8px"><div class="row" id="load" style="gap:6px"></div><button id="asgOpen">Assegna aree</button></div>
+        <div id="asgBox" hidden>
+          <h3 style="margin-top:6px">Assegna aree</h3>
+          <p class="hint">Scegli chi copre ogni area, poi condividi il file <code>team.json</code> con Raffaele: lo carica nella repository e le assegnazioni valgono per tutta la squadra.</p>
+          <div class="row" id="asgLoad" style="gap:6px;margin-top:8px"></div>
+          <div class="asg-list" id="asgList"></div>
+          <div class="row" style="margin-top:10px"><button class="primary" id="asgShare">Condividi team.json</button><button id="asgCopy">Copia testo</button><button class="ghost" id="asgClose">Chiudi</button></div>
+          <div class="status" id="asgMsg"></div>
+          <details><summary class="muted" style="cursor:pointer">Vedi il file</summary><textarea id="asgOut" readonly></textarea></details>
+        </div>
       </div>
       <div class="grid" id="cats"></div>
     </section>
