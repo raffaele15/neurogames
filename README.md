@@ -8,8 +8,10 @@ Web app per allenarsi a squadre al torneo di neurologia. Funziona su GitHub Page
 - `sw.js`, `manifest.webmanifest`, `icons/`: installazione e uso offline
 - `data/q-*.json`: domande per libro (testo originale inglese e traduzione automatica italiana)
 - `data/meta.json`: libri e aree
-- `data/team.json`: assegnazione predefinita delle aree ai quattro membri
+- `data/team.json`: assegnazione delle aree ai quattro membri (creata dall'app con *Assegna aree*)
 - `img/`: immagini delle domande (WebP compresso)
+- `tools/`: script per rigenerare le domande dai PDF (vedi `tools/README.md`)
+- `CLAUDE.md`: contesto per continuare a sviluppare l'app con Claude
 
 ## Pubblicazione
 

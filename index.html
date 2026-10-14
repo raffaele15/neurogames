@@ -55,11 +55,11 @@
         <div class="row setup-row">
           <select id="mode" aria-label="Quali domande">
             <option value="review">Ripasso consigliato (scadute + nuove)</option>
-            <option value="mine">Le mie aree</option>
-            <option value="all">Tutte le aree selezionate</option>
+            <option value="all">Tutte le domande</option>
             <option value="wrong">Solo quelle che ho sbagliato</option>
             <option value="new">Solo domande nuove</option>
           </select>
+          <label class="row" style="gap:6px"><input type="checkbox" id="onlyMine"> Solo le mie aree</label>
           <label class="row" style="gap:6px">N. <input type="number" id="nq" min="1" max="500" value="20" inputmode="numeric" style="width:5em"></label>
           <button class="primary" id="start">Inizia</button>
         </div>

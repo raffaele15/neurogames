@@ -1,0 +1,9 @@
+books/
+mt/
+raw_*.json
+all_*.json
+txt/
+txt2/
+review/*.jpg
+review/index.json
+__pycache__/

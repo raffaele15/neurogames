@@ -112,7 +112,8 @@ function buildSettingsUI() {
   $$('input[name=imgs]').forEach(i => i.checked = i.value === settings.imgs);
   $$('input[name=lang]').forEach(i => i.checked = i.value === settings.lang);
   $("#hideMissing").checked = settings.hideMissing; $("#secs").value = settings.secs; $("#extraTime").checked = settings.extraTime;
-  $("#mode").value = settings.mode; $("#nq").value = settings.nq;
+  if (settings.mode === "mine") { settings.mode = "review"; settings.onlyMine = true; }
+  $("#mode").value = settings.mode; $("#nq").value = settings.nq; $("#onlyMine").checked = !!settings.onlyMine;
   $("#ladder").innerHTML = INT.map((ms, i) => i ? `<span class="chip plain">liv. ${i} <b>${fmtDur(ms)}</b></span>` : "").join("");
 }
 function readSettings() {
@@ -124,11 +125,11 @@ function readSettings() {
   settings.lang = ($('input[name=lang]:checked') || {}).value || "it";
   settings.hideMissing = $("#hideMissing").checked;
   settings.secs = Math.max(5, +$("#secs").value || 30); settings.extraTime = $("#extraTime").checked;
-  settings.mode = $("#mode").value; settings.nq = Math.max(1, +$("#nq").value || 20);
+  settings.mode = $("#mode").value; settings.nq = Math.max(1, +$("#nq").value || 20); settings.onlyMine = $("#onlyMine").checked;
   saveSettings(); updateSetupInfo();
 }
 $("#settings").addEventListener("change", readSettings);
-$("#mode").onchange = readSettings; $("#nq").onchange = readSettings;
+$("#mode").onchange = readSettings; $("#onlyMine").onchange = readSettings; $("#nq").onchange = readSettings;
 $$("[data-all]").forEach(b => b.onclick = e => { e.preventDefault(); $$(`#${b.dataset.all} input`).forEach(i => i.checked = true); readSettings(); });
 $$("[data-none]").forEach(b => b.onclick = e => { e.preventDefault(); $$(`#${b.dataset.none} input`).forEach(i => i.checked = false); readSettings(); });
 $("#catMine").onclick = e => { e.preventDefault(); $$("#catList input").forEach(i => i.checked = team.map[i.value] === uidx); readSettings(); };
@@ -141,15 +142,15 @@ function filtered() {
     && !(S.hideMissing && q.mi));
 }
 function pool() {
-  const base = filtered(), m = settings.mode;
-  if (m === "mine") return base.filter(q => team.map[q.c] === uidx);
+  let base = filtered(); const m = settings.mode;
+  if (settings.onlyMine) base = base.filter(q => team.map[q.c] === uidx);
   if (m === "wrong") return base.filter(q => srs[q.id] && srs[q.id].lapses > 0);
   if (m === "new") return base.filter(q => !srs[q.id]);
   return base;
 }
 function updateSetupInfo() {
   const p = pool(), now = Date.now(), due = p.filter(q => isDue(q.id, now)).length, nw = p.filter(q => !srs[q.id]).length;
-  $("#setupInfo").innerHTML = p.length ? `${p.length} domande · <span class="due">${due} da ripassare</span> · ${nw} nuove` : (settings.mode === "mine" ? "Non hai aree assegnate: assegnale nella scheda Aree." : "Nessuna domanda con queste impostazioni.");
+  $("#setupInfo").innerHTML = p.length ? `${p.length} domande · <span class="due">${due} da ripassare</span> · ${nw} nuove` : (settings.onlyMine && !Q.some(q => team.map[q.c] === uidx) ? "Non hai aree assegnate (vedi scheda Aree)." : "Nessuna domanda con queste impostazioni.");
   $("#start").disabled = !p.length;
   const allDue = Q.filter(q => isDue(q.id, now)).length;
   $("#dueChip").textContent = allDue ? `${allDue} da ripassare` : "In pari";

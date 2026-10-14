@@ -8,7 +8,7 @@
   "ess": {
    "title": "Essential Neurology Board Review Q&A, 2026",
    "short": "Essential Neurology Q&A",
-   "count": 904
+   "count": 901
   },
   "mayo": {
    "title": "Mayo Clinic Neurology Board Review, 2e, 2022",
@@ -18,17 +18,17 @@
   "sou": {
    "title": "Souayah — Neurology Examination and Board Review, 3e, 2017",
    "short": "Souayah",
-   "count": 1441
+   "count": 1439
   },
   "how": {
    "title": "Howard — Neurology Q&A Review, 2017",
    "short": "Howard Q&A",
-   "count": 915
+   "count": 906
   },
   "bra": {
    "title": "Jordan, Mayans, Soileau — Neurology Self-Assessment (Bradley), 2016",
    "short": "Bradley Self-Assessment",
-   "count": 593
+   "count": 587
   },
   "mow": {
    "title": "Mowzoon, Flemming — Neurology Board Review: Illustrated Study Guide, 2007",
@@ -134,6 +134,6 @@
    "Etica, statistica e pratica clinica"
   ]
  ],
- "total": 5553,
+ "total": 5533,
  "translated": true
 }
